@@ -3,7 +3,7 @@
 # Copyright (c) 2017-18 Richard Hull and contributors
 # See LICENSE.rst for details.
 
-import re, time, argparse
+import re, time, argparse, sys
 from luma.led_matrix.device import max7219
 from luma.core.interface.serial import spi, noop
 from luma.core.render import canvas
@@ -20,25 +20,30 @@ from PIL import Image, ImageDraw, ImageFont
 def showText(device, c, forceSingle=False, speed=2, vibe=(0,0), overflow=True, contrast=10, font=ImageFont.truetype("mem.ttf", 5), fontPadding=0, mid=True, fill=1):
     d=int(device.size[0]/(font.size-(1-fontPadding)))
     isTwoRows=not forceSingle and (font.size-1)<=device.size[1]/2
-    overflow=overflow and (font.getsize(c)[0]>device.size[0] if not isTwoRows else font.getsize(c[d:][0]>device.size[0]))
+    overflow=overflow and (font.getsize(c)[0]>device.size[0] if not isTwoRows else font.getsize(c[d:][0])>device.size[0])
     v=True
     device.contrast(contrast)
     print("|"+c[:d]+"|")
     if isTwoRows and c[d:]:
         print("|"+c[d:][:d]+"|")
-    while True:
-        with canvas(device) as draw:
-            draw.text((vibe[0] if v else 0, -fontPadding), c[:d].center(d if mid else 0), fill=fill, font=font)
-            if isTwoRows and c[d:]:
-                draw.text((0 if v else vibe[1], 4-fontPadding), c[d:].center(d if mid else 0), fill=fill, font=font)
-        if overflow:
-            c=c[1:]+c[0]
-        elif not vibe[0] and not vibe[1]:
-            break
-        v=not v
-        time.sleep(1/speed)
+    try:
+        while True:
+            with canvas(device) as draw:
+                draw.text((vibe[0] if v else 0, -fontPadding), c[:d].center(d if mid else 0), fill=fill, font=font)
+                if isTwoRows and c[d:]:
+                    draw.text((0 if v else vibe[1], 4-fontPadding), c[d:].center(d if mid else 0), fill=fill, font=font)
+            if overflow:
+                c=c[1:]+c[0]
+            elif not vibe[0] and not vibe[1]:
+                break
+            v=not v
+            time.sleep(1/speed)
+    except BaseException as e:
+        device.clear()
+        print("\nMaid cleaned.")
+        raise e
 
-showText(device, "The quick brown fox jumps over the lazy dog", True, 10)
+showText(device, "The quick brown fox jumps over the lazy dog", True, 5)
 showText(device, "我@试", font=ImageFont.truetype("SimSun-special.ttf", 9))
 
 
