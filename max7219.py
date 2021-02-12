@@ -14,14 +14,104 @@ from luma.core.virtual import viewport
 from luma.core.legacy import text, show_message
 from luma.core.legacy.font import proportional, CP437_FONT, TINY_FONT, SINCLAIR_FONT, LCD_FONT
 
+serial = spi(port=0, device=0, gpio=noop())
+device = max7219(serial, cascaded=4, block_orientation=-90,rotate=0, blocks_arranged_in_reverse_order=False)
 
-def demo(n, block_orientation, rotate, inreverse):
-    # create matrix device
-    serial = spi(port=0, device=0, gpio=noop())
-    device = max7219(serial, cascaded=n or 1, block_orientation=block_orientation,
-                     rotate=rotate or 0, blocks_arranged_in_reverse_order=inreverse)
-    print("Created device")
+from PIL import Image, ImageDraw, ImageFont
 
+
+def showText(device, c, vibe=(0,0), contrast=30, font=ImageFont.truetype("mem.ttf", 5), mid=True, fill=1):
+    d=int(device.size[0]/(font.size-1))
+    isTwoRows=(font.size-1)<=device.size[1]/2
+    device.contrast(contrast)
+    print("|"+c[:d]+"|")
+    if isTwoRows:
+        print("|"+c[d:].strip()[:d]+"|")
+    v=True
+    while True:
+        with canvas(device) as draw:
+            draw.text((vibe[0] if v else 0, 0), c[:d].center(d if mid else 0), fill=fill, font=font)
+            if (isTwoRows):
+                draw.text((0 if v else vibe[1], 4), c[d:].strip().center(d if mid else 0), fill=fill, font=font)
+        if (not vibe[0] and not vibe[1]):
+            break
+        v=not v
+        time.sleep(0.5)
+
+showText(device, "test for 2021:1/2", (0,1), 255)
+
+
+import sys
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
+from urllib import parse, request
+print("Created device")
+info=dict({'pop':0, 'que_size':0, 'status_code':0, 'status':'', 'room_id':0, 'super_chat':[]})
+class Resquest(BaseHTTPRequestHandler):
+    def do_GET(self, data=None, method=None):
+        if (parse.urlparse(self.path).path in ['/favicon.ico']):
+            self.send_response(404)
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.end_headers()
+        cmd_res=controlRoom(self.path, data, method)
+        res=cmd_res[1]+('<br>' if cmd_res[1] and cmd_res[0] else '')+(readFromLive() if cmd_res[0] else '')
+        self.wfile.write(res.encode('utf-8'))
+
+    def do_POST(self):
+        data=self.rfile.read(int(self.headers['content-length']))
+        self.do_GET(data, method="POST")
+
+    def do_PUT(self):
+        data=self.rfile.read(int(self.headers['content-length']))
+
+with canvas(device) as draw:
+text(draw, (0, 0), "Te st", fill="white")
+
+
+
+from PIL import Image, ImageDraw, ImageFont
+b=Image.new("1", (32,32), "#FFFFFF")
+a=ImageDraw.Draw(b)
+f=ImageFont.truetype("mem.ttf", 4)
+a.text((1,1), "test", font=f)
+b.save("test.png")
+
+
+msg = "Slow scrolling: 测试The quick brown fox jumps over the lazy dog"
+print(msg)
+show_message(device, msg, fill="white", font=proportional(LCD_FONT), scroll_delay=0.1)
+
+for _ in range(5):
+    for intensity in range(16):
+        device.contrast(intensity * 16)
+        time.sleep(0.1)
+device.contrast(0x80)
+
+print("Vertical scrolling")
+words = [
+    "Victor", "Echo", "Romeo", "Tango", "India", "Charlie", "Alpha",
+    "Lima", " ", "Sierra", "Charlie", "Romeo", "Oscar", "Lima", "Lima",
+    "India", "November", "Golf", " "
+]
+
+virtual = viewport(device, width=device.width, height=len(words) * 8)
+with canvas(virtual) as draw:
+    for i, word in enumerate(words):
+        text(draw, (0, i * 8), word, fill="white", font=proportional(CP437_FONT))
+
+for i in range(virtual.height - device.height):
+    virtual.set_position((0, i))
+    time.sleep(0.05)
+
+def clear(device):
+    with canvas(device) as draw:
+        text(draw, (0, 0), "", fill="white", font=proportional(CP437_FONT))
+
+
+def runall(serial, device):
     # start demo
     msg = "MAX7219 LED Matrix Demo"
     print(msg)
