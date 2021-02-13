@@ -17,8 +17,8 @@ serial = spi(port=0, device=0, gpio=noop())
 device = max7219(serial, cascaded=4, block_orientation=-90,rotate=0, blocks_arranged_in_reverse_order=False)
 
 class loop():
-    def __init__(self, *args):
-        self.iter=args if args else [0]
+    def __init__(self, l):
+        self.iter=l if isinstance(l, list) or isinstance(l, tuple) else [l]
         self.i=-1
     
     def __next__(self):
@@ -39,23 +39,30 @@ def vibe_range(space, content, vibe):
     resR.reverse()
     return res+resR
 
-def showText(device, c, forceSingle=False, speed=30, vibe=[0,0], overflow=True, contrast=255, font=ImageFont.truetype("mem.ttf", 5), fontPadding=0, fill=1):
-    d=int(device.size[0]/(font.size-(1-fontPadding)))
-    isTwoRows=not forceSingle and (font.size-1)<=device.size[1]/2
+SMALL_FONT=ImageFont.truetype("mem.ttf", 5)
+BIG_FONT=ImageFont.truetype("SimSun-special.ttf", 9)
+
+def above(a, b):
+    return a if a>b else b
+
+def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, contrast=128, font=SMALL_FONT, fontPadding=0, fill=1):
+    if vibe is None:
+        vibe=[0,0]
+    d=int(device.size[0]/(font.size-1+fontPadding))
+    isTwoRows=not forceSingle and font.size-1<=device.size[1]/2 and len(c)>d
     overflow=overflow and (font.getsize(c)[0]>device.size[0] if not isTwoRows else font.getsize(c[d:])[0]>device.size[0])
     if overflow:
         if not isTwoRows:
             vibe[0]=font.getsize(c)[0]-device.size[0]
         else:
             vibe[1]=font.getsize(c[d:])[0]-device.size[0]
-    v=(loop(*vibe_range(device.size[0], font.getsize(c[:d] if isTwoRows else c)[0], vibe[0])), 
-    loop(*vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1])))
+    v=loop(vibe_range(device.size[0], font.getsize(c[:d])[0], vibe[0]) if isTwoRows else int(above(device.size[0]-font.getsize(c)[0], 0)/2)), loop(*vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1]))
     device.contrast(contrast)
-    print("\r|"+c[:d]+"|", vibe(0), "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
+    print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
     try:
         while True:
             with canvas(device) as draw:
-                draw.text((v[0].__next__(), -fontPadding), c[:d] if isTwoRows else c, fill=fill, font=font)
+                draw.text((v[0].__next__(), -fontPadding+(0 if isTwoRows else int((device.size[1]-font.size+1)/2))), c[:d] if isTwoRows else c, fill=fill, font=font)
                 if isTwoRows and c[d:]:
                     draw.text((v[1].__next__(), 4-fontPadding), c[d:], fill=fill, font=font)
             if not vibe[0] and not vibe[1]:
@@ -66,9 +73,10 @@ def showText(device, c, forceSingle=False, speed=30, vibe=[0,0], overflow=True, 
         print("\nMaid cleaned.")
         raise e
 
-showText(device, "企鹅鹅鹅鹅鹅鹅鹅", font=ImageFont.truetype("SimSun-special.ttf", 9), speed=15)
+showText(device, "企鹅企鹅企鹅企鹅企鹅企鹅", font=ImageFont.truetype("SimSun-special.ttf", 9), speed=15)
 
-showText(device, "The quick brown fox jumps over the lazy dog", True)
+showText(device, "T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
+showText(device, "The quick brown fox jumps over the lazy dog.")
 showText(device, "我@试", font=ImageFont.truetype("SimSun-special.ttf", 9))
 
 
