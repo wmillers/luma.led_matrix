@@ -73,11 +73,11 @@ def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, c
         print("\nMaid cleaned.")
         raise e
 
-showText(device, "企鹅企鹅企鹅企鹅企鹅企鹅", font=ImageFont.truetype("SimSun-special.ttf", 9), speed=15)
+showText(device, "我@试我@试我@试我@试", font=BIG_FONT)
 
 showText(device, "T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
 showText(device, "The quick brown fox jumps over the lazy dog.")
-showText(device, "我@试", font=ImageFont.truetype("SimSun-special.ttf", 9))
+showText(device, "我@试", font=BIG_FONT)
 
 
 import sys
