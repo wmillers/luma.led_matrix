@@ -17,9 +17,9 @@ serial = spi(port=0, device=0, gpio=noop())
 device = max7219(serial, cascaded=4, block_orientation=-90,rotate=0, blocks_arranged_in_reverse_order=False)
 
 def maid(f):
-    def clean(args):
+    def clean(*args, **kwargs):
         try:
-            f(args)
+            f(*args, **kwargs)
         except BaseException as e:
             device.clear()
             print("\nMaid cleaned.")
