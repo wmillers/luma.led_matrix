@@ -24,7 +24,7 @@ def maid(f):
             device.clear()
             print("\nMaid cleaned.")
             raise e
-
+    return clean
 
 class loop():
     def __init__(self, l):
@@ -55,12 +55,13 @@ def above(a, b):
     return a if a>b else b
 
 @maid
-def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1):
+def showText(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1):
     if vibe is None:
         vibe=[0,0]
     d=int(device.size[0]/(font.size-1+fontPadding))
     isTwoRows=not forceSingle and font.size-1<=device.size[1]/2 and len(c)>d
     overflow=overflow and (font.getsize(c)[0]>device.size[0] if not isTwoRows else font.getsize(c[d:])[0]>device.size[0])
+    count=0
     if overflow:
         if not isTwoRows:
             vibe[0]=font.getsize(c)[0]-device.size[0]
@@ -69,24 +70,25 @@ def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, f
     v=loop(vibe_range(device.size[0], font.getsize(c[:d] if isTwoRows else c)[0], vibe[0]) if not isTwoRows and overflow else int(above(device.size[0]-font.getsize(c)[0], 0)/2)), loop(vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1]))
     print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
     while True:
-       with canvas(device) as draw:
+        with canvas(device) as draw:
             draw.text((v[0].__next__(), -fontPadding+(0 if isTwoRows else int((device.size[1]-font.size+1)/2))), c[:d] if isTwoRows else c, fill=fill, font=font)
             if isTwoRows and c[d:]:
                 draw.text((v[1].__next__(), 4-fontPadding), c[d:], fill=fill, font=font)
-       if not vibe[0] and not vibe[1]:
+        count+=1
+        if (not vibe[0] and not vibe[1]) or (timeout and count*1/speed>timeout):
             break
-       time.sleep(1/speed)
+        time.sleep(1/speed)
 
 def emoji(emo="normal", font=SMALL_FONT):
-    showText(device, "^_^", overflow=false, font=font)
+    showText("^_^", overflow=false, font=font)
 
-device.contrast(64)
-
-showText(device, "我@试我@试我@试我@试", font=CN_FONT)
-
-showText(device, "T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
-showText(device, "The quick brown fox jumps over the lazy dog.")
-showText(device, "我@试", font=CN_FONT)
+def sun(bright=None):
+    if bright is None:
+        h=time.localtime(time.time()).tm_hour+(8-time.timezone/3600)
+        if h>23:
+            h-=24
+        bright=8 if h in range(18, 24) or h in range(0, 10) else 128
+    device.contrast(bright)
 
 
 import sys
@@ -114,9 +116,6 @@ class Resquest(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         data=self.rfile.read(int(self.headers['content-length']))
-
-with canvas(device) as draw:
-text(draw, (0, 0), "Te st", fill="white")
 
 
 
@@ -149,7 +148,7 @@ def runall(serial, device):
         "India", "November", "Golf", " "
     ]
 
-    virtual = viewport(device, width=device.width, height=len(words) * 8)
+    virtual = viewport(width=device.width, height=len(words) * 8)
     with canvas(virtual) as draw:
         for i, word in enumerate(words):
             text(draw, (0, i * 8), word, fill="white", font=proportional(CP437_FONT))
@@ -217,7 +216,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    try:
-        demo(args.cascaded, args.block_orientation, args.rotate, args.reverse_order)
-    except KeyboardInterrupt:
-        pass
+    #demo(args.cascaded, args.block_orientation, args.rotate, args.reverse_order)
+
+    sun()
+    showText("我@试我@试我@试我@试", font=CN_FONT)
+
+    showText("T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
+    showText("The quick brown fox jumps over the lazy dog.")
+    showText("我@试", font=CN_FONT)
