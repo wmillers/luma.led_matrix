@@ -26,7 +26,6 @@ class loop():
         self.i%=len(self.iter)
         return self.iter[self.i]
 
-
 def vibe_range(space, content, vibe):
     '''
     |SP [content] ACE|
@@ -40,12 +39,12 @@ def vibe_range(space, content, vibe):
     return res+resR
 
 SMALL_FONT=ImageFont.truetype("mem.ttf", 5)
-BIG_FONT=ImageFont.truetype("SimSun-special.ttf", 9)
+CN_FONT=ImageFont.truetype("SimSun-special.ttf", 9)
 
 def above(a, b):
     return a if a>b else b
 
-def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, contrast=128, font=SMALL_FONT, fontPadding=0, fill=1):
+def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1):
     if vibe is None:
         vibe=[0,0]
     d=int(device.size[0]/(font.size-1+fontPadding))
@@ -56,8 +55,7 @@ def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, c
             vibe[0]=font.getsize(c)[0]-device.size[0]
         else:
             vibe[1]=font.getsize(c[d:])[0]-device.size[0]
-    v=loop(vibe_range(device.size[0], font.getsize(c[:d])[0], vibe[0]) if isTwoRows else int(above(device.size[0]-font.getsize(c)[0], 0)/2)), loop(*vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1]))
-    device.contrast(contrast)
+    v=loop(vibe_range(device.size[0], font.getsize(c[:d] if isTwoRows else c)[0], vibe[0]) if not isTwoRows and overflow else int(above(device.size[0]-font.getsize(c)[0], 0)/2)), loop(vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1]))
     print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
     try:
         while True:
@@ -73,11 +71,16 @@ def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, c
         print("\nMaid cleaned.")
         raise e
 
-showText(device, "我@试我@试我@试我@试", font=BIG_FONT)
+def emoji(emo="normal", font=SMALL_FONT):
+    showText(device, "^_^", overflow=false, font=font)
+
+device.contrast(64)
+
+showText(device, "我@试我@试我@试我@试", font=CN_FONT)
 
 showText(device, "T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
 showText(device, "The quick brown fox jumps over the lazy dog.")
-showText(device, "我@试", font=BIG_FONT)
+showText(device, "我@试", font=CN_FONT)
 
 
 import sys
