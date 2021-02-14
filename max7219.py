@@ -16,6 +16,16 @@ from PIL import Image, ImageDraw, ImageFont
 serial = spi(port=0, device=0, gpio=noop())
 device = max7219(serial, cascaded=4, block_orientation=-90,rotate=0, blocks_arranged_in_reverse_order=False)
 
+def maid(f):
+    def clean(args):
+        try:
+            f(args)
+        except BaseException as e:
+            device.clear()
+            print("\nMaid cleaned.")
+            raise e
+
+
 class loop():
     def __init__(self, l):
         self.iter=l if isinstance(l, list) or isinstance(l, tuple) else [l]
@@ -45,6 +55,7 @@ BIG_FONT=ImageFont.truetype("SimSun-special.ttf", 9)
 def above(a, b):
     return a if a>b else b
 
+@maid
 def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, contrast=128, font=SMALL_FONT, fontPadding=0, fill=1):
     if vibe is None:
         vibe=[0,0]
@@ -59,19 +70,14 @@ def showText(device, c, forceSingle=False, speed=25, vibe=None, overflow=True, c
     v=loop(vibe_range(device.size[0], font.getsize(c[:d])[0], vibe[0]) if isTwoRows else int(above(device.size[0]-font.getsize(c)[0], 0)/2)), loop(*vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1]))
     device.contrast(contrast)
     print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
-    try:
-        while True:
-            with canvas(device) as draw:
-                draw.text((v[0].__next__(), -fontPadding+(0 if isTwoRows else int((device.size[1]-font.size+1)/2))), c[:d] if isTwoRows else c, fill=fill, font=font)
-                if isTwoRows and c[d:]:
-                    draw.text((v[1].__next__(), 4-fontPadding), c[d:], fill=fill, font=font)
-            if not vibe[0] and not vibe[1]:
-                break
-            time.sleep(1/speed)
-    except BaseException as e:
-        device.clear()
-        print("\nMaid cleaned.")
-        raise e
+    while True:
+       with canvas(device) as draw:
+            draw.text((v[0].__next__(), -fontPadding+(0 if isTwoRows else int((device.size[1]-font.size+1)/2))), c[:d] if isTwoRows else c, fill=fill, font=font)
+            if isTwoRows and c[d:]:
+                draw.text((v[1].__next__(), 4-fontPadding), c[d:], fill=fill, font=font)
+       if not vibe[0] and not vibe[1]:
+            break
+       time.sleep(1/speed)
 
 showText(device, "我@试我@试我@试我@试", font=BIG_FONT)
 
