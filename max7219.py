@@ -78,7 +78,7 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
         elif font.getsize(c)[0]>device.size[0]:
             v=loop(device.size[0]-font.getsize(c)[0]), loop(0)
     if not quiet:
-        print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
+        print("\r|"+c[:d]+"|", "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", flush=True, end="")
     while True:
         with canvas(device) as draw:
             draw.text((v[0].__next__(), -fontPadding+(0 if isTwoRows else int((device.size[1]-font.size+1)/2))), c[:d] if isTwoRows else c, fill=fill, font=font)
@@ -127,8 +127,7 @@ def live(device=device):
             s+=key
         if (ord(key)>127):
             onlySmall=False
-        print('\r'+s, end="")
-        sys.stdout.flush()
+        print('\r'+s, flush=True, end="")
         show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT)
     if device:
         device.clear()
