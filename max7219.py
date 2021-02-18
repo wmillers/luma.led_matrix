@@ -106,7 +106,7 @@ def readkey(getchar_fn=None):
 def live():
     while True:
         key=readkey()
-        print(key)
+        print(key, ord(key), end="")
         if key=='q':
             break
 
