@@ -55,7 +55,7 @@ def above(a, b):
     return a if a>b else b
 
 @maid
-def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1):
+def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1, quiet=False):
     if vibe is None:
         vibe=[0,0]
     d=int(device.size[0]/(font.size-1+fontPadding))
@@ -68,7 +68,8 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
         else:
             vibe[1]=font.getsize(c[d:])[0]-device.size[0]
     v=loop(vibe_range(device.size[0], font.getsize(c[:d] if isTwoRows else c)[0], vibe[0]) if not isTwoRows and overflow else int(above(device.size[0]-font.getsize(c)[0], 0)/2)), loop(vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1]))
-    print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
+    if not quiet:
+        print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
     while True:
         with canvas(device) as draw:
             draw.text((v[0].__next__(), -fontPadding+(0 if isTwoRows else int((device.size[1]-font.size+1)/2))), c[:d] if isTwoRows else c, fill=fill, font=font)
@@ -103,12 +104,19 @@ def readkey(getchar_fn=None):
 	c3 = getchar()
 	return chr(0x10 + ord(c3) - 65)
 
-def live():
+def live(onlySmall=True):
+    s=''
     while True:
         key=readkey()
-        print(key, ord(key), end="")
-        if key=='q':
+        if key==chr(3):# c-c
             break
+        elif key==chr(127):# backspace
+            key=chr(8)
+            s=s[:-1]
+        else:
+            s+=key
+        print(key, end="")
+        show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT)
 
 
 def emoji(emo="normal", font=SMALL_FONT):
