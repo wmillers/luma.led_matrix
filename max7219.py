@@ -36,6 +36,9 @@ class loop():
         self.i%=len(self.iter)
         return self.iter[self.i]
 
+    def isSingle(self):
+        return len(self.iter)<=1
+
 def vibe_range(space, content, vibe):
     '''
     |SP [content] ACE|
@@ -83,7 +86,7 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
             if isTwoRows and c[d:]:
                 draw.text((v[1].__next__(), 4-fontPadding), c[d:], fill=fill, font=font)
         count+=1
-        if (timeout and count*1/speed>timeout) or (len(v[0])==1 and len(v[1])==1):
+        if (timeout and count*1/speed>timeout) or (v[0].isSingle() and v[1].isSingle()):
             break
         time.sleep(1/speed)
 
