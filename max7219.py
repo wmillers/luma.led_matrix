@@ -106,7 +106,7 @@ def readkey(getchar_fn=None):
 	c3 = getchar()
 	return chr(0x10 + ord(c3) - 65)
 
-def live(onlySmall=True):
+def live(onlySmall=True, device=device):
     s=''
     while True:
         key=readkey()
@@ -119,7 +119,9 @@ def live(onlySmall=True):
             s+=key
         print(key, end="")
         sys.stdout.flush()
-        show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT)
+        show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT, append=True)
+    if device:
+        device.clear()
 
 
 def emoji(emo="normal", font=SMALL_FONT):
