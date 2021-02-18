@@ -55,12 +55,14 @@ def above(a, b):
     return a if a>b else b
 
 @maid
-def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1, quiet=False):
+def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, append=False, fontPadding=0, fill=1, quiet=False):
     if vibe is None:
         vibe=[0,0]
     d=int(device.size[0]/(font.size-1+fontPadding))
     isTwoRows=not forceSingle and font.size-1<=device.size[1]/2 and len(c)>d
     overflow=overflow and (font.getsize(c)[0]>device.size[0] if not isTwoRows else font.getsize(c[d:])[0]>device.size[0])
+    if append:
+        c=c[:d*(2 if isTwoRows else 1)]
     count=0
     if overflow:
         if not isTwoRows:
@@ -116,6 +118,7 @@ def live(onlySmall=True):
         else:
             s+=key
         print(key, end="")
+        sys.stdout.flush()
         show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT)
 
 
