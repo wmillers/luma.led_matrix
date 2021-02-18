@@ -84,7 +84,7 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
             if isTwoRows and c[d:]:
                 draw.text((v[1].__next__(), 4-fontPadding), c[d:], fill=fill, font=font)
         count+=1
-        if (timeout and count*1/speed>timeout) or (v[0].isSingle and v[1].isSingle:
+        if (timeout and count*1/speed>timeout) or (v[0].isSingle and v[1].isSingle):
             break
         time.sleep(1/speed)
 
