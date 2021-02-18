@@ -55,7 +55,7 @@ def above(a, b):
     return a if a>b else b
 
 @maid
-def showText(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1):
+def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1):
     if vibe is None:
         vibe=[0,0]
     d=int(device.size[0]/(font.size-1+fontPadding))
@@ -79,8 +79,40 @@ def showText(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, over
             break
         time.sleep(1/speed)
 
+
+import sys, tty, termios
+ 
+def readchar():
+	fd = sys.stdin.fileno()
+	old_settings = termios.tcgetattr(fd)
+	try:
+		tty.setraw(sys.stdin.fileno())
+		ch = sys.stdin.read(1)
+	finally:
+		termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+	return ch
+ 
+def readkey(getchar_fn=None):
+	getchar = getchar_fn or readchar
+	c1 = getchar()
+	if ord(c1) != 0x1b:
+		return c1
+	c2 = getchar()
+	if ord(c2) != 0x5b:
+		return c1
+	c3 = getchar()
+	return chr(0x10 + ord(c3) - 65)
+
+def live():
+    while True:
+        key=readkey()
+        print(key)
+        if key=='q':
+            break
+
+
 def emoji(emo="normal", font=SMALL_FONT):
-    showText("^_^", overflow=false, font=font)
+    show("^_^", overflow=False, font=font)
 
 def sun(bright=None):
     if bright is None:
@@ -219,8 +251,9 @@ if __name__ == "__main__":
     #demo(args.cascaded, args.block_orientation, args.rotate, args.reverse_order)
 
     sun()
-    showText("我@试我@试我@试我@试", font=CN_FONT)
+    show("我@试我@试我@试我@试", font=CN_FONT)
 
-    showText("T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
-    showText("The quick brown fox jumps over the lazy dog.")
-    showText("我@试", font=CN_FONT)
+    show("T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
+    show("The quick brown fox jumps over the lazy dog.")
+    show("我@试", font=CN_FONT)
+    device.clear()
