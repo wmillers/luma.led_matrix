@@ -61,8 +61,8 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
     d=int(device.size[0]/(font.size-1+fontPadding))
     isTwoRows=not forceSingle and font.size-1<=device.size[1]/2 and len(c)>d
     overflow=overflow and (font.getsize(c)[0]>device.size[0] if not isTwoRows else font.getsize(c[d:])[0]>device.size[0])
-    if append:
-        c=c[:d*(2 if isTwoRows else 1)]
+    if append and len(c)>d*(2 if isTwoRows else 1):
+        c=c[len(c)-d*(2 if isTwoRows else 1):]
     count=0
     if overflow:
         if not isTwoRows:
