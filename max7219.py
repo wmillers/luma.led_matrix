@@ -29,15 +29,13 @@ def maid(f):
 class loop():
     def __init__(self, l):
         self.iter=l if isinstance(l, list) or isinstance(l, tuple) else [l]
+        self.isSingle=len(self.iter)<=1
         self.i=-1
     
     def __next__(self):
         self.i+=1
         self.i%=len(self.iter)
         return self.iter[self.i]
-
-    def isSingle(self):
-        return len(self.iter)<=1
 
 def vibe_range(space, content, vibe):
     '''
@@ -77,7 +75,7 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
             if len(c)>d*2:
                 c=c[len(c)-d*(2 if isTwoRows else 1):]
         elif font.getsize(c)[0]>device.size[0]:
-            v=loop(font.getsize(c)[0]-device.size[0]), loop(0)
+            v=loop(device.size[0]-font.getsize(c)[0]), loop(0)
     if not quiet:
         print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
     while True:
