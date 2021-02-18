@@ -55,21 +55,26 @@ def above(a, b):
     return a if a>b else b
 
 @maid
-def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, append=False, fontPadding=0, fill=1, quiet=False):
-    if vibe is None:
-        vibe=[0,0]
+def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1, quiet=False):
+    v=loop(0), loop(0)
     d=int(device.size[0]/(font.size-1+fontPadding))
     isTwoRows=not forceSingle and font.size-1<=device.size[1]/2 and len(c)>d
     overflow=overflow and (font.getsize(c)[0]>device.size[0] if not isTwoRows else font.getsize(c[d:])[0]>device.size[0])
-    if append and len(c)>d*(2 if isTwoRows else 1):
-        c=c[len(c)-d*(2 if isTwoRows else 1):]
     count=0
     if overflow:
+        if vibe is None:
+            vibe=[0,0]
         if not isTwoRows:
             vibe[0]=font.getsize(c)[0]-device.size[0]
         else:
             vibe[1]=font.getsize(c[d:])[0]-device.size[0]
-    v=loop(vibe_range(device.size[0], font.getsize(c[:d] if isTwoRows else c)[0], vibe[0]) if not isTwoRows and overflow else int(above(device.size[0]-font.getsize(c)[0], 0)/2)), loop(vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1]))
+        v=loop(vibe_range(device.size[0], font.getsize(c[:d] if isTwoRows else c)[0], vibe[0]) if not isTwoRows and overflow else int(above(device.size[0]-font.getsize(c)[0], 0)/2)), loop(vibe_range(device.size[0], font.getsize(c[d:])[0], vibe[1]))
+    else:
+        if isTwoRows:
+            if len(c)>d*2:
+                c=c[len(c)-d*(2 if isTwoRows else 1):]
+        elif font.getsize(c)[0]>device.size[0]:
+            v=loop(font.getsize(c)[0]-device.size[0]), loop(0)
     if not quiet:
         print("\r|"+c[:d]+"|", vibe[0], "|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "", vibe[1], flush=True, end="")
     while True:
@@ -122,7 +127,7 @@ def live(device=device):
             onlySmall=False
         print('\r'+s, end="")
         sys.stdout.flush()
-        show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT, append=True)
+        show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT)
     if device:
         device.clear()
 
