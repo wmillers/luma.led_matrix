@@ -106,8 +106,9 @@ def readkey(getchar_fn=None):
 	c3 = getchar()
 	return chr(0x10 + ord(c3) - 65)
 
-def live(onlySmall=True, device=device):
+def live(device=device):
     s=''
+    onlySmall=True
     while True:
         key=readkey()
         if key==chr(3):# c-c
@@ -117,7 +118,9 @@ def live(onlySmall=True, device=device):
             s=s[:-1]
         else:
             s+=key
-        print(key, end="")
+        if (ord(key)>127):
+            onlySmall=False
+        print('\r'+s, end="")
         sys.stdout.flush()
         show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT, append=True)
     if device:
