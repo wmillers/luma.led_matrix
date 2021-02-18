@@ -58,6 +58,7 @@ def above(a, b):
 @maid
 def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow=True, font=SMALL_FONT, fontPadding=0, fill=1, quiet=False):
     v=loop(0), loop(0)
+    c=str(c)
     d=int(device.size[0]/(font.size-1+fontPadding))
     isTwoRows=not forceSingle and font.size-1<=device.size[1]/2 and len(c)>d
     overflow=overflow and (font.getsize(c)[0]>device.size[0] if not isTwoRows else font.getsize(c[d:])[0]>device.size[0])
