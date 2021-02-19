@@ -89,7 +89,7 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
         if (timeout and count*1/speed>timeout) or (v[0].isSingle and v[1].isSingle):
             break
         time.sleep(1/speed)
-    return "|"+c[:d]+"|"+("|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "")
+    return "|"+c[:d]+"| |"+c[d:][:d]+"|"
 
 
 import sys, tty, termios
