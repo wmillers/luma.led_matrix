@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 serial = spi(port=0, device=0, gpio=noop())
 device = max7219(serial, cascaded=4, block_orientation=-90,rotate=0, blocks_arranged_in_reverse_order=False)
+print("Created device")
 
 def maid(f):
     def clean(*args, **kwargs):
@@ -88,6 +89,7 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
         if (timeout and count*1/speed>timeout) or (v[0].isSingle and v[1].isSingle):
             break
         time.sleep(1/speed)
+    return "|"+c[:d]+"|"+("|"+c[d:][:d]+"|" if isTwoRows and c[d:] else "")
 
 
 import sys, tty, termios
@@ -115,7 +117,6 @@ def readkey(getchar_fn=None):
 
 def live(device=device):
     s=''
-    onlySmall=True
     while True:
         key=readkey()
         if key==chr(3):# c-c
@@ -125,12 +126,16 @@ def live(device=device):
             s=s[:-1]
         else:
             s+=key
-        if (ord(key)>127):
-            onlySmall=False
         print('\r'+s, flush=True, end="")
-        show(s, overflow=False, quiet=True, font=SMALL_FONT if onlySmall else CN_FONT)
+        show(s, overflow=False, quiet=True, font=checkFont(key))
     if device:
         device.clear()
+
+def checkFont(s, T=SMALL_FONT, F=CN_FONT):
+    for i in s:
+        if ord(i)>127:
+            return F
+    return T
 
 
 def emoji(emo="normal", font=SMALL_FONT):
@@ -149,8 +154,6 @@ import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 from urllib import parse, request
-print("Created device")
-info=dict({'pop':0, 'que_size':0, 'status_code':0, 'status':'', 'room_id':0, 'super_chat':[]})
 class Resquest(BaseHTTPRequestHandler):
     def do_GET(self, data=None, method=None):
         if (parse.urlparse(self.path).path in ['/favicon.ico']):
@@ -160,9 +163,9 @@ class Resquest(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
-        cmd_res=controlRoom(self.path, data, method)
-        res=cmd_res[1]+('<br>' if cmd_res[1] and cmd_res[0] else '')+(readFromLive() if cmd_res[0] else '')
-        self.wfile.write(res.encode('utf-8'))
+        print(str(data))
+        s=parse.urlparse(self.path).query.split('&')[0]
+        self.wfile.write(show(s, quiet=True, font=checkFont(s)).encode('utf-8'))
 
     def do_POST(self):
         data=self.rfile.read(int(self.headers['content-length']))
@@ -260,22 +263,16 @@ def runall(serial, device):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='matrix_demo arguments',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    parser.add_argument('--cascaded', '-n', type=int, default=1, help='Number of cascaded MAX7219 LED matrices')
-    parser.add_argument('--block-orientation', type=int, default=0, choices=[0, 90, -90], help='Corrects block orientation when wired vertically')
-    parser.add_argument('--rotate', type=int, default=0, choices=[0, 1, 2, 3], help='Rotate display 0=0°, 1=90°, 2=180°, 3=270°')
-    parser.add_argument('--reverse-order', type=bool, default=False, help='Set to true if blocks are in reverse order')
-
-    args = parser.parse_args()
-
-    #demo(args.cascaded, args.block_orientation, args.rotate, args.reverse_order)
-
     sun()
-    show("我@试我@试我@试我@试", font=CN_FONT)
-
-    show("T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
-    show("The quick brown fox jumps over the lazy dog.")
-    show("我@试", font=CN_FONT)
+    if (len(sys.argv)>1):
+        host = ('localhost', int(sys.argv[1]))
+        print("Starting server, listen at: %s:%s" % host)
+        server = HTTPServer(host, Resquest)
+        server.serve_forever()
+    else:
+        show("我@试我@试我@试我@试", font=CN_FONT)
+        show("T}{e q[_]ick br0\^/|\| f0x j|_|mps ()ver +|-|e lqzy dog$.", True)
+        show("The quick brown fox jumps over the lazy dog.")
+        show("我@试", font=CN_FONT)
+    time.sleep(10)
     device.clear()
