@@ -89,7 +89,6 @@ def show(c="^ 3 ^", forceSingle=False, speed=25, timeout=10, vibe=None, overflow
         if (timeout and count*1/speed>timeout) or (v[0].isSingle and v[1].isSingle):
             break
         time.sleep(1/speed)
-    return "|"+c[:d]+"| |"+c[d:][:d]+"|"
 
 
 import sys, tty, termios
@@ -165,7 +164,8 @@ class Resquest(BaseHTTPRequestHandler):
         self.end_headers()
         print(str(data))
         s=parse.urlparse(self.path).query.split('&')[0]
-        self.wfile.write(show(s, quiet=True, overflow=False, font=checkFont(s)).encode('utf-8'))
+        show(s, quiet=True, overflow=False, font=checkFont(s))
+        self.wfile.write("200".encode('utf-8'))
 
     def do_POST(self):
         data=self.rfile.read(int(self.headers['content-length']))
