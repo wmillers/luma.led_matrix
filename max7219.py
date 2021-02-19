@@ -165,7 +165,7 @@ class Resquest(BaseHTTPRequestHandler):
         self.end_headers()
         print(str(data))
         s=parse.urlparse(self.path).query.split('&')[0]
-        self.wfile.write(show(s, quiet=True, font=checkFont(s)).encode('utf-8'))
+        self.wfile.write(show(s, quiet=True, overflow=False, font=checkFont(s)).encode('utf-8'))
 
     def do_POST(self):
         data=self.rfile.read(int(self.headers['content-length']))
@@ -265,7 +265,7 @@ def runall(serial, device):
 if __name__ == "__main__":
     sun()
     if (len(sys.argv)>1):
-        host = ('localhost', int(sys.argv[1]))
+        host = ('0.0.0.0', int(sys.argv[1]))
         print("Starting server, listen at: %s:%s" % host)
         server = HTTPServer(host, Resquest)
         server.serve_forever()
