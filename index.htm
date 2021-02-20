@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+    function httpReq(path, f, fOnfailed, post, method, fOnBoth){
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function(){
+          if (xmlhttp.readyState == 4){
+            if(xmlhttp.status == 200){
+              if (f)
+                f(xmlhttp.responseText);
+            } else if (fOnfailed)
+              fOnfailed(xmlhttp.status);
+            if (fOnBoth)
+              fOnBoth();
+          }
+        }
+        xmlhttp.open(method?method:post?'POST':'GET', path);
+        if (post)
+          xmlhttp.setRequestHeader("Content-type", "application/json");
+        xmlhttp.send(post);
+      }
+
+    function up(t){
+        httpReq("/?"+t.value, console.log);
+    }
+  </script>
+</head>
+<body>
+    <textarea oninput="up(this)"></textarea>
+</body>
+</html>
