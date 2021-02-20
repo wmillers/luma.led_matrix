@@ -165,7 +165,7 @@ class Resquest(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
-        if (path in ['/index.htm', 'index', 'index.html'] or not query):
+        if (path in ['/index.htm', 'index', 'index.html'] or (self.path[-1]!="?" and not query)):
             res=self.default_file()
         else:
             print(str(data))
