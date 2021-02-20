@@ -23,11 +23,16 @@
       }
 
     function up(t){
-        httpReq("/?"+t.value, console.log);
+        var status=document.getElementById("status");
+        status.innerHTML="🗘";
+        httpReq("/?"+t.value, function a(s){
+            status.innerHTML=s;
+        });
     }
   </script>
 </head>
 <body>
-    <textarea oninput="up(this)"></textarea>
+    <textarea style="width: 50%;height: 50%;" oninput="up(this)"></textarea>
+    <div id="status"></div>
 </body>
 </html>

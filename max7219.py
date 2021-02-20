@@ -156,17 +156,23 @@ import json
 from urllib import parse, request
 class Resquest(BaseHTTPRequestHandler):
     def do_GET(self, data=None, method=None):
-        if (parse.urlparse(self.path).path in ['/favicon.ico']):
+        path=parse.urlparse(self.path).path
+        query=parse.unquote(parse.urlparse(self.path).query)
+        if (path in ['/favicon.ico']):
             self.send_response(404)
             self.end_headers()
             return
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
-        print(str(data))
-        s=parse.unquote(parse.urlparse(self.path).query.split('&')[0])
-        show(s, quiet=True, overflow=False, font=checkFont(s))
-        self.wfile.write("200".encode('utf-8'))
+        if (path in ['/index.htm', 'index', 'index.html'] or not query):
+            res=self.default_file()
+        else:
+            print(str(data))
+            s=query.split('&')[0]
+            show(s, quiet=True, overflow=False, font=checkFont(s))
+            res='200'
+        self.wfile.write(res.encode('utf-8'))
 
     def do_POST(self):
         data=self.rfile.read(int(self.headers['content-length']))
@@ -174,6 +180,10 @@ class Resquest(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         data=self.rfile.read(int(self.headers['content-length']))
+
+    def default_file(self):
+        with open('index.htm', 'r') as f:
+            return f.read()
 
 
 
